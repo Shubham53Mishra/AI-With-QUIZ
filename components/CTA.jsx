@@ -4,15 +4,15 @@ import Button from './Button';
 
 export default function CTA() {
   return (
-    <section className="py-20 bg-linear-to-r from-blue-600 to-blue-800">
+    <section className="py-12 md:py-16 lg:py-20 bg-linear-to-r from-blue-600 to-blue-800">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 md:mb-6">
           Ready to Create Your First Quiz?
         </h2>
-        <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
+        <p className="text-base sm:text-lg md:text-xl text-blue-100 mb-8 md:mb-10 max-w-2xl mx-auto">
           Join thousands of educators, trainers, and professionals who are making learning fun and interactive.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
           <Button variant="secondary" size="lg">
             Create a quiz for free
           </Button>
