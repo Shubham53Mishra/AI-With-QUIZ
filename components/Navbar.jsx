@@ -83,11 +83,6 @@ export default function Navbar() {
               >
                 About
               </a>
-              <div className="px-4 pt-2">
-                <Button variant="secondary" size="sm" className="w-full mb-2">
-                  Sign in
-                </Button>
-              </div>
             </div>
           </div>
         )}
