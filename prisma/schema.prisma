@@ -28,8 +28,11 @@ model Question {
 model User {
   id              Int      @id @default(autoincrement())
   email           String   @unique
+  username        String   @unique
   name            String?
   password        String
+  city            String?
+  country         String?
   role            String   @default("user")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
