@@ -8,6 +8,8 @@ export default function ExcelUploader({ onUploadSuccess }) {
   const [fileName, setFileName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [quizName, setQuizName] = useState('');
+  const [showNameInput, setShowNameInput] = useState(false);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -67,6 +69,9 @@ export default function ExcelUploader({ onUploadSuccess }) {
 
       const formData = new FormData();
       formData.append('file', excelData.file);
+      if (quizName) {
+        formData.append('quizName', quizName);
+      }
 
       const response = await fetch('/api/import-questions', {
         method: 'POST',
@@ -87,6 +92,7 @@ export default function ExcelUploader({ onUploadSuccess }) {
       // Clear form
       setExcelData(null);
       setFileName('');
+      setQuizName('');
       
       // Call callback if provided
       if (onUploadSuccess) {
@@ -119,9 +125,58 @@ export default function ExcelUploader({ onUploadSuccess }) {
         </div>
       )}
 
+      {/* Quiz Name Input Section */}
+      {showNameInput && !excelData && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-lg p-6 border-2 border-blue-200">
+          <h3 className="text-lg font-bold mb-4 text-gray-900">📝 Enter Quiz/Questions Name</h3>
+          <div className="space-y-3">
+            <input
+              type="text"
+              value={quizName}
+              onChange={(e) => setQuizName(e.target.value)}
+              placeholder="e.g., General Knowledge, Math Basics, Science Quiz..."
+              className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-lg"
+            />
+            <p className="text-sm text-gray-600">This name helps organize your question sets (optional)</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowNameInput(false);
+                  setQuizName('');
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowNameInput(false)}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
+              >
+                Continue →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* File Upload Section */}
       <div className="bg-white rounded-lg shadow-lg p-8">
-        <h2 className="text-2xl font-bold mb-6">Upload Excel File</h2>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-2xl font-bold">Upload Excel File</h2>
+            {quizName && (
+              <p className="text-blue-600 font-semibold mt-1">📁 Quiz: {quizName}</p>
+            )}
+          </div>
+          {!showNameInput && (
+            <button
+              onClick={() => setShowNameInput(true)}
+              className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition font-semibold text-sm"
+            >
+              + Add Name
+            </button>
+          )}
+        </div>
         <p className="text-gray-600 mb-4 text-sm">
           Required columns: Question ID, Question, Option A, Option B, Option C, Option D, Correct Answer
         </p>

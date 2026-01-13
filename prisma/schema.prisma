@@ -12,17 +12,31 @@ datasource db {
 
 model Question {
   id              Int      @id @default(autoincrement())
-  questionId      Int      @unique
+  questionId      Int
   question        String
   optionA         String
   optionB         String
   optionC         String
   optionD         String
   correctAnswer   String
+  quizSetId       Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  quizSet         QuizSet? @relation(fields: [quizSetId], references: [id], onDelete: Cascade)
+
+  @@map("questions")
+}
+
+model QuizSet {
+  id              Int      @id @default(autoincrement())
+  name            String
+  description     String?
+  questions       Question[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  @@map("questions")
+  @@map("quiz_sets")
 }
 
 model User {

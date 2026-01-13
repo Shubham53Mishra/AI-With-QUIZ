@@ -5,6 +5,7 @@ export async function POST(request) {
   try {
     const formData = await request.formData();
     const file = formData.get('file');
+    const quizName = formData.get('quizName');
 
     if (!file) {
       return Response.json(
@@ -41,8 +42,21 @@ export async function POST(request) {
       );
     }
 
-    // Clear existing questions and insert new ones
-    await prisma.question.deleteMany({});
+    // Create or get quiz set if name is provided
+    let quizSet = null;
+    if (quizName && quizName.trim()) {
+      quizSet = await prisma.quizSet.create({
+        data: {
+          name: quizName.trim(),
+          description: `Excel import - ${new Date().toLocaleDateString()}`,
+        },
+      });
+    }
+
+    // Clear existing orphaned questions (without quizSet) and insert new ones
+    await prisma.question.deleteMany({
+      where: { quizSetId: null }
+    });
 
     const createdQuestions = await Promise.all(
       jsonData.map((row) =>
@@ -55,6 +69,7 @@ export async function POST(request) {
             optionC: String(row['Option C']),
             optionD: String(row['Option D']),
             correctAnswer: String(row['Correct Answer']),
+            quizSetId: quizSet ? quizSet.id : null,
           },
         })
       )
@@ -64,6 +79,7 @@ export async function POST(request) {
       success: true,
       message: `${createdQuestions.length} questions imported successfully`,
       count: createdQuestions.length,
+      quizSet,
     });
   } catch (error) {
     console.error('Error processing file:', error);

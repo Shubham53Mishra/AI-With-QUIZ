@@ -10,6 +10,7 @@ export default function QuizPage() {
   const [score, setScore] = useState(0);
   const [showScore, setShowScore] = useState(false);
   const [userAnswers, setUserAnswers] = useState({});
+  const [skippedQuestions, setSkippedQuestions] = useState(new Set());
 
   useEffect(() => {
     fetchQuestions();
@@ -65,6 +66,12 @@ export default function QuizPage() {
     setScore(0);
     setShowScore(false);
     setUserAnswers({});
+    setSkippedQuestions(new Set());
+  };
+
+  const handleSkipQuestion = () => {
+    setSkippedQuestions(new Set([...skippedQuestions, currentQuestion]));
+    handleNextQuestion();
   };
 
   if (isLoading) {
@@ -126,33 +133,47 @@ export default function QuizPage() {
 
               <div className="space-y-4 mb-8 text-left bg-gray-50 p-6 rounded-lg">
                 <h2 className="text-xl font-bold mb-4">Review Answers</h2>
-                {questions.map((q, idx) => (
-                  <div key={idx} className="border-b pb-4 last:border-b-0">
-                    <p className="font-semibold text-sm mb-2">
-                      Q{idx + 1}: {q.question}
-                    </p>
-                    <div className="text-sm space-y-1">
-                      <p>
-                        Your answer:{' '}
-                        <span
-                          className={
-                            userAnswers[idx] === q.correctAnswer
-                              ? 'text-green-600 font-semibold'
-                              : 'text-red-600 font-semibold'
-                          }
-                        >
-                          {userAnswers[idx] || 'Not answered'}
-                        </span>
+                {questions.map((q, idx) => {
+                  const isSkipped = skippedQuestions.has(idx);
+                  const isCorrect = userAnswers[idx] === q.correctAnswer;
+                  
+                  return (
+                    <div key={idx} className={`border-b pb-4 last:border-b-0 ${isSkipped ? 'bg-yellow-50 p-3 rounded border-l-4 border-l-yellow-400' : ''}`}>
+                      <p className="font-semibold text-sm mb-2">
+                        Q{idx + 1}: {q.question}
+                        {isSkipped && <span className="text-yellow-600 font-bold ml-2">[SKIPPED]</span>}
                       </p>
-                      {userAnswers[idx] !== q.correctAnswer && (
+                      <div className="text-sm space-y-1">
                         <p>
-                          Correct answer:{' '}
-                          <span className="text-green-600 font-semibold">{q.correctAnswer}</span>
+                          Your answer:{' '}
+                          <span
+                            className={
+                              isSkipped 
+                                ? 'text-yellow-600 font-semibold'
+                                : isCorrect
+                                ? 'text-green-600 font-semibold'
+                                : 'text-red-600 font-semibold'
+                            }
+                          >
+                            {userAnswers[idx] || 'Not answered'}
+                          </span>
                         </p>
-                      )}
+                        {!isSkipped && userAnswers[idx] !== q.correctAnswer && (
+                          <p>
+                            Correct answer:{' '}
+                            <span className="text-green-600 font-semibold">{q.correctAnswer}</span>
+                          </p>
+                        )}
+                        {isSkipped && (
+                          <p>
+                            Correct answer:{' '}
+                            <span className="text-green-600 font-semibold">{q.correctAnswer}</span>
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <button
@@ -213,8 +234,17 @@ export default function QuizPage() {
                   ← Previous
                 </button>
 
+                <button
+                  onClick={handleSkipQuestion}
+                  className="px-6 py-2 rounded-lg border border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition font-semibold"
+                >
+                  ⊘ Skip
+                </button>
+
                 <div className="text-sm text-gray-600">
-                  {userAnswers[currentQuestion] ? (
+                  {skippedQuestions.has(currentQuestion) ? (
+                    <span className="text-yellow-600 font-semibold">⊘ Skipped</span>
+                  ) : userAnswers[currentQuestion] ? (
                     <span className="text-green-600 font-semibold">✓ Answered</span>
                   ) : (
                     <span className="text-orange-600 font-semibold">Not answered</span>
