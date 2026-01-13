@@ -25,6 +25,9 @@ export default function Navbar() {
             <a href="#features" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
               Features
             </a>
+            <a href="/quiz" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
+              Quiz
+            </a>
             <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
               Pricing
             </a>
@@ -35,6 +38,9 @@ export default function Navbar() {
 
           {/* CTA Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
+            <a href="/admin" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
+              Admin
+            </a>
             <Button variant="secondary" size="sm">
               Sign in
             </Button>
