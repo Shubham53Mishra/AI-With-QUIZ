@@ -30,16 +30,33 @@ export async function POST(request) {
       );
     }
 
-    // Check required columns
+    // Check required columns - case insensitive and flexible matching
     const requiredColumns = ['Question ID', 'Question', 'Option A', 'Option B', 'Option C', 'Option D', 'Correct Answer'];
     const firstRow = jsonData[0];
-    const hasRequiredColumns = requiredColumns.every(col => col in firstRow);
-
-    if (!hasRequiredColumns) {
+    const providedColumns = Object.keys(firstRow);
+    
+    // Create a normalized mapping of columns (case-insensitive, trim spaces)
+    const columnMap = {};
+    const normalizedProvidedColumns = providedColumns.map(col => col.trim().toLowerCase());
+    
+    requiredColumns.forEach(requiredCol => {
+      const normalizedRequired = requiredCol.trim().toLowerCase();
+      const foundIndex = normalizedProvidedColumns.findIndex(col => col === normalizedRequired);
+      
+      if (foundIndex !== -1) {
+        columnMap[requiredCol] = providedColumns[foundIndex];
+      }
+    });
+    
+    const missingColumns = requiredColumns.filter(col => !columnMap[col]);
+    
+    if (missingColumns.length > 0) {
       return Response.json(
         { 
-          error: 'Invalid Excel format. Required columns: Question ID, Question, Option A, Option B, Option C, Option D, Correct Answer',
-          providedColumns: Object.keys(firstRow)
+          error: `Missing required columns: ${missingColumns.join(', ')}. Your file has: ${providedColumns.join(', ')}`,
+          providedColumns: providedColumns,
+          requiredColumns: requiredColumns,
+          missingColumns: missingColumns
         },
         { status: 400 }
       );
@@ -65,19 +82,31 @@ export async function POST(request) {
       jsonData.map((row) =>
         prisma.question.create({
           data: {
-            questionId: parseInt(row['Question ID']),
-            question: String(row['Question']),
-            optionA: String(row['Option A']),
-            optionB: String(row['Option B']),
-            optionC: String(row['Option C']),
-            optionD: String(row['Option D']),
-            correctAnswer: String(row['Correct Answer']),
+            questionId: parseInt(row[columnMap['Question ID']]),
+            question: String(row[columnMap['Question']]),
+            optionA: String(row[columnMap['Option A']]),
+            optionB: String(row[columnMap['Option B']]),
+            optionC: String(row[columnMap['Option C']]),
+            optionD: String(row[columnMap['Option D']]),
+            correctAnswer: String(row[columnMap['Correct Answer']]),
             fileName: fileName,
             quizSetId: quizSet ? quizSet.id : null,
           },
         })
       )
     );
+
+    // Log the upload to upload history
+    await prisma.uploadHistory.create({
+      data: {
+        fileName: fileName,
+        quizName: quizName || null,
+        questionCount: createdQuestions.length,
+        quizSetId: quizSet ? quizSet.id : null,
+        status: 'success',
+        message: `${createdQuestions.length} questions imported successfully`,
+      },
+    });
 
     return Response.json({
       success: true,

@@ -4,7 +4,7 @@ export async function PUT(request, { params }) {
   try {
     const { userId } = await params;
     const body = await request.json();
-    const { isBlocked, blockReason } = body;
+    const { isBlocked, blockReason } = body; 
 
     // Validate inputs
     if (!userId) {

@@ -10,6 +10,7 @@ export default function ExcelUploader({ onUploadSuccess }) {
   const [message, setMessage] = useState('');
   const [quizName, setQuizName] = useState('');
   const [showNameInput, setShowNameInput] = useState(false);
+  const [showFormatGuide, setShowFormatGuide] = useState(false);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -81,7 +82,14 @@ export default function ExcelUploader({ onUploadSuccess }) {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to save questions');
+        let errorMessage = result.error || 'Failed to save questions';
+        
+        // If there are missing columns, show them more clearly
+        if (result.missingColumns && result.providedColumns) {
+          errorMessage = `❌ Missing columns: ${result.missingColumns.join(', ')}\n\nYour file has: ${result.providedColumns.join(', ')}\n\nRequired: ${result.requiredColumns?.join(', ') || 'Question ID, Question, Option A, Option B, Option C, Option D, Correct Answer'}`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       setMessage({
@@ -115,7 +123,7 @@ export default function ExcelUploader({ onUploadSuccess }) {
       {/* Message Display */}
       {message && (
         <div
-          className={`p-4 rounded-lg ${
+          className={`p-4 rounded-lg whitespace-pre-wrap ${
             message.type === 'error'
               ? 'bg-red-50 border border-red-200 text-red-800'
               : 'bg-green-50 border border-green-200 text-green-800'
@@ -180,6 +188,16 @@ export default function ExcelUploader({ onUploadSuccess }) {
         <p className="text-gray-600 mb-4 text-sm">
           Required columns: Question ID, Question, Option A, Option B, Option C, Option D, Correct Answer
         </p>
+
+        <button
+          onClick={() => setShowFormatGuide(true)}
+          className="mb-6 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition font-semibold text-sm inline-flex items-center gap-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          View Question Format Guide
+        </button>
 
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition">
           <input
@@ -272,6 +290,163 @@ export default function ExcelUploader({ onUploadSuccess }) {
               Showing 10 of {excelData.data.length} rows
             </p>
           )}
+        </div>
+      )}
+
+      {/* Question Format Guide Modal */}
+      {showFormatGuide && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-96 overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold">📋 Question Format Guide</h2>
+                <p className="text-blue-100 text-sm mt-1">Follow this format when creating your Excel file</p>
+              </div>
+              <button
+                onClick={() => setShowFormatGuide(false)}
+                className="text-white hover:bg-blue-800 rounded-lg p-2 transition"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-8 space-y-6">
+              {/* Required Columns */}
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
+                <h3 className="text-lg font-bold text-blue-900 mb-4">✓ Required Columns</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="bg-white p-3 rounded border border-blue-200">
+                    <p className="font-semibold text-sm text-blue-700">Question ID</p>
+                    <p className="text-xs text-gray-600">Unique number</p>
+                  </div>
+                  <div className="bg-white p-3 rounded border border-blue-200">
+                    <p className="font-semibold text-sm text-blue-700">Question</p>
+                    <p className="text-xs text-gray-600">The question text</p>
+                  </div>
+                  <div className="bg-white p-3 rounded border border-blue-200">
+                    <p className="font-semibold text-sm text-blue-700">Option A</p>
+                    <p className="text-xs text-gray-600">First option</p>
+                  </div>
+                  <div className="bg-white p-3 rounded border border-blue-200">
+                    <p className="font-semibold text-sm text-blue-700">Option B</p>
+                    <p className="text-xs text-gray-600">Second option</p>
+                  </div>
+                  <div className="bg-white p-3 rounded border border-blue-200">
+                    <p className="font-semibold text-sm text-blue-700">Option C</p>
+                    <p className="text-xs text-gray-600">Third option</p>
+                  </div>
+                  <div className="bg-white p-3 rounded border border-blue-200">
+                    <p className="font-semibold text-sm text-blue-700">Option D</p>
+                    <p className="text-xs text-gray-600">Fourth option</p>
+                  </div>
+                  <div className="bg-white p-3 rounded border border-blue-200 col-span-2 md:col-span-3">
+                    <p className="font-semibold text-sm text-blue-700">Correct Answer</p>
+                    <p className="text-xs text-gray-600">Must be: A, B, C, or D</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Example Table */}
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">📊 Example Format</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="bg-gray-300 border border-gray-400">
+                        <th className="px-3 py-2 border border-gray-400 font-bold text-left">Question ID</th>
+                        <th className="px-3 py-2 border border-gray-400 font-bold text-left">Question</th>
+                        <th className="px-3 py-2 border border-gray-400 font-bold text-left">Option A</th>
+                        <th className="px-3 py-2 border border-gray-400 font-bold text-left">Option B</th>
+                        <th className="px-3 py-2 border border-gray-400 font-bold text-left">Option C</th>
+                        <th className="px-3 py-2 border border-gray-400 font-bold text-left">Option D</th>
+                        <th className="px-3 py-2 border border-gray-400 font-bold text-left">Correct Answer</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="bg-white border border-gray-300 hover:bg-blue-50">
+                        <td className="px-3 py-2 border border-gray-300">1</td>
+                        <td className="px-3 py-2 border border-gray-300">What is 2 + 2?</td>
+                        <td className="px-3 py-2 border border-gray-300">3</td>
+                        <td className="px-3 py-2 border border-gray-300">4</td>
+                        <td className="px-3 py-2 border border-gray-300">5</td>
+                        <td className="px-3 py-2 border border-gray-300">6</td>
+                        <td className="px-3 py-2 border border-gray-300">B</td>
+                      </tr>
+                      <tr className="bg-gray-50 border border-gray-300 hover:bg-blue-50">
+                        <td className="px-3 py-2 border border-gray-300">2</td>
+                        <td className="px-3 py-2 border border-gray-300">What is the capital of France?</td>
+                        <td className="px-3 py-2 border border-gray-300">London</td>
+                        <td className="px-3 py-2 border border-gray-300">Paris</td>
+                        <td className="px-3 py-2 border border-gray-300">Berlin</td>
+                        <td className="px-3 py-2 border border-gray-300">Rome</td>
+                        <td className="px-3 py-2 border border-gray-300">B</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Important Notes */}
+              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6">
+                <h3 className="text-lg font-bold text-yellow-900 mb-4">⚠️ Important Rules</h3>
+                <ul className="space-y-2 text-sm text-yellow-800">
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">•</span>
+                    <span>Column headers must match exactly (case-insensitive)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">•</span>
+                    <span>Correct Answer must be one of: A, B, C, or D (capital letters)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">•</span>
+                    <span>Question ID should be unique for each question</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">•</span>
+                    <span>All fields must contain data (no empty cells)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">•</span>
+                    <span>Supported file formats: .xlsx, .xls, .csv</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Tips */}
+              <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6">
+                <h3 className="text-lg font-bold text-green-900 mb-4">💡 Pro Tips</h3>
+                <ul className="space-y-2 text-sm text-green-800">
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">→</span>
+                    <span>You can give your question set a name for better organization</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">→</span>
+                    <span>Preview your data before saving to catch any errors</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">→</span>
+                    <span>Duplicate entries will be saved; ensure your data is clean</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-gray-100 border-t p-4 flex justify-end gap-3">
+              <button
+                onClick={() => setShowFormatGuide(false)}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
+              >
+                Got it! Close Guide
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

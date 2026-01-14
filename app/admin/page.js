@@ -40,6 +40,8 @@ export default function AdminPage() {
   const [quizSetsLoading, setQuizSetsLoading] = useState(false);
   const [selectedQuizSet, setSelectedQuizSet] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [uploadHistory, setUploadHistory] = useState([]);
+  const [uploadHistoryLoading, setUploadHistoryLoading] = useState(false);
 
   useEffect(() => {
     // Check if tab parameter is in URL
@@ -101,6 +103,7 @@ export default function AdminPage() {
     fetchDashboardData();
     fetchUploadedQuestions();
     fetchQuizSets();
+    fetchUploadHistory();
   }, []);
 
   const fetchUploadedQuestions = async () => {
@@ -144,10 +147,25 @@ export default function AdminPage() {
     }
   };
 
+  const fetchUploadHistory = async () => {
+    try {
+      setUploadHistoryLoading(true);
+      const response = await fetch('/api/upload-history');
+      if (!response.ok) throw new Error('Failed to fetch upload history');
+      const result = await response.json();
+      setUploadHistory(result.data || []);
+    } catch (error) {
+      console.error('Error fetching upload history:', error);
+    } finally {
+      setUploadHistoryLoading(false);
+    }
+  };
+
   const handleRoleChange = async (userId, newRole) => {
     // When making a regular user an admin, automatically set to "assistant admin"
     const finalRole = (newRole === 'admin') ? 'assistant admin' : newRole;
     
+    setBlockModal(null); // Close block modal if open
     setRoleUpdateModal({
       userId,
       newRole: finalRole,
@@ -188,6 +206,7 @@ export default function AdminPage() {
   };
 
   const openBlockModal = (user) => {
+    setRoleUpdateModal(null); // Close role modal if open
     setBlockModal(user);
     setBlockReason('');
   };
@@ -473,7 +492,7 @@ export default function AdminPage() {
       
       {/* Role Update Confirmation Modal */}
       {roleUpdateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-label="Role Update Modal">
           <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full mx-4 animate-fade-in">
             <div className="flex items-center justify-center mb-4">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -541,7 +560,7 @@ export default function AdminPage() {
 
       {/* User Block Modal */}
       {blockModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40" role="dialog" aria-modal="true" aria-label="Block User Modal">
           <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full mx-4 animate-fade-in">
             <div className="flex items-center justify-center mb-4">
               <div className={`w-12 h-12 ${blockModal.isBlocked ? 'bg-green-100' : 'bg-red-100'} rounded-full flex items-center justify-center`}>
@@ -625,47 +644,94 @@ export default function AdminPage() {
         </div>
       )}
 
-      <div className="pt-20 pb-10 ml-20">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <h1 className="text-4xl font-bold mb-8 text-center">Admin Dashboard</h1>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        {/* Top Decorative Elements */}
+        <div className="fixed top-0 right-0 -mr-40 -mt-40 w-80 h-80 bg-gradient-to-br from-blue-200 to-blue-300 rounded-full opacity-20 pointer-events-none"></div>
+        <div className="fixed bottom-0 left-0 -ml-40 -mb-40 w-80 h-80 bg-gradient-to-tr from-indigo-200 to-purple-300 rounded-full opacity-20 pointer-events-none"></div>
+        
+        <div className="pt-20 pb-10 ml-20 relative z-10">
+          <div className="container mx-auto px-4 max-w-7xl">
+            {/* Page Header */}
+            <div className="mb-12">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 bg-clip-text text-transparent">Admin Dashboard</h1>
+                  <p className="text-gray-600 text-lg mt-2">Manage your quiz platform with ease</p>
+                </div>
+                <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-4 shadow-lg">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="h-1 w-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
+            </div>
 
-          {/* Tab Navigation */}
-          <div className="flex border-b border-gray-300 mb-8 overflow-x-auto">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`px-6 py-3 font-semibold whitespace-nowrap ${
-                activeTab === 'dashboard'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Dashboard
-            </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`px-6 py-3 font-semibold whitespace-nowrap ${
-                activeTab === 'analytics'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Analytics
-            </button>
-            <button
-              onClick={() => setActiveTab('questions')}
-              className={`px-6 py-3 font-semibold whitespace-nowrap ${
-                activeTab === 'questions'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Questions
-            </button>
-          </div>
+            {/* Tab Navigation - Premium Style */}
+            <div className="mb-12">
+              <div className="flex gap-2 border-b-2 border-gray-200 overflow-x-auto pb-0">
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className={`px-6 py-4 font-semibold whitespace-nowrap relative transition-all duration-300 ${
+                    activeTab === 'dashboard'
+                      ? 'text-blue-600'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4m0 0l4 4m-4-4v4" />
+                    </svg>
+                    Dashboard
+                  </span>
+                  {activeTab === 'dashboard' && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-t-full"></div>
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveTab('analytics')}
+                  className={`px-6 py-4 font-semibold whitespace-nowrap relative transition-all duration-300 ${
+                    activeTab === 'analytics'
+                      ? 'text-blue-600'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Analytics
+                  </span>
+                  {activeTab === 'analytics' && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-t-full"></div>
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveTab('questions')}
+                  className={`px-6 py-4 font-semibold whitespace-nowrap relative transition-all duration-300 ${
+                    activeTab === 'questions'
+                      ? 'text-blue-600'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Questions
+                  </span>
+                  {activeTab === 'questions' && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-t-full"></div>
+                  )}
+                </button>
+              </div>
+            </div>
 
-          {/* Dashboard Tab */}
-          {activeTab === 'dashboard' && (
-            <div>
+            {/* Content Area */}
+
+            {/* Dashboard Tab */}
+            {activeTab === 'dashboard' && (
+              <div>
               {dashboardLoading ? (
                 <div className="flex items-center justify-center h-64">
                   <div className="text-center">
@@ -1705,14 +1771,378 @@ export default function AdminPage() {
             <div className="space-y-8">
               {/* Excel Upload Section */}
               <div className="mb-10">
-                <ExcelUploader />
+                <ExcelUploader onUploadSuccess={() => {
+                  fetchQuizSets();
+                  fetchUploadedQuestions();
+                  fetchUploadHistory();
+                }} />
               </div>
+
+              {/* Recently Uploaded Section - Quick Access */}
+              {quizSets.length > 0 && (
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl shadow-lg border-2 border-green-300 p-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className="text-3xl">🆕</span>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">Recently Uploaded</h2>
+                      <p className="text-gray-600 text-sm mt-1">Quick access to latest uploads</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {quizSets.slice(0, 3).map((set) => (
+                      <div key={set.id} className="bg-white rounded-lg border-2 border-green-200 p-4 hover:shadow-lg transition cursor-pointer" onClick={() => setSelectedQuizSet(set)}>
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-bold text-gray-900 flex-1 truncate">{set.name}</h3>
+                          <span className="bg-green-600 text-white px-2 py-1 rounded text-sm font-bold ml-2">{set.questionCount}</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-3">
+                          📅 {new Date(set.createdAt).toLocaleDateString()}
+                        </p>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedQuizSet(set);
+                          }}
+                          className="w-full bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition font-semibold text-sm"
+                        >
+                          View Questions
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Files Uploaded Without Set Name Section */}
+              {uploadedQuestions.filter(q => !q.quizSetId).length > 0 && (
+                <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl shadow-lg border-2 border-orange-300 p-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className="text-3xl">📂</span>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">Previous Uploads (Without Set Name)</h2>
+                      <p className="text-gray-600 text-sm mt-1">{uploadedQuestions.filter(q => !q.quizSetId).length} questions from uploads without a quiz name</p>
+                    </div>
+                  </div>
+                  
+                  {/* Group by fileName */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Array.from(new Set(uploadedQuestions.filter(q => !q.quizSetId).map(q => q.fileName)))
+                      .map((fileName) => {
+                        const questionsInFile = uploadedQuestions.filter(q => !q.quizSetId && q.fileName === fileName);
+                        return (
+                          <div key={fileName} className="bg-white rounded-lg border-2 border-orange-200 p-4 hover:shadow-lg transition">
+                            <div className="flex items-start justify-between mb-2">
+                              <h3 className="font-bold text-gray-900 flex-1 truncate text-sm">{fileName}</h3>
+                              <span className="bg-orange-600 text-white px-2 py-1 rounded text-xs font-bold ml-2">{questionsInFile.length}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 mb-3">
+                              📅 {new Date(questionsInFile[0]?.createdAt).toLocaleDateString()}
+                            </p>
+                            <button
+                              onClick={() => {
+                                const modal = { id: 'unsorted', name: fileName, questionCount: questionsInFile.length, questions: questionsInFile };
+                                setSelectedQuizSet(modal);
+                              }}
+                              className="w-full bg-orange-600 text-white px-3 py-2 rounded-lg hover:bg-orange-700 transition font-semibold text-sm"
+                            >
+                              View Questions
+                            </button>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+
+              {/* Quiz Sets Table Section */}
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl shadow-lg border border-blue-200 p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">📁 All Question Sets</h2>
+                    <p className="text-gray-600 text-sm mt-1">Complete list of all uploaded collections ({quizSets.length})</p>
+                  </div>
+                </div>
+
+                {quizSetsLoading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center">
+                      <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                      <p className="mt-4 text-gray-600">Loading quiz sets...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {quizSets.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse">
+                          <thead>
+                            <tr className="bg-blue-200 border border-blue-300">
+                              <th className="px-6 py-3 text-left font-bold text-blue-900 border border-blue-300">📝 Set Name</th>
+                              <th className="px-6 py-3 text-center font-bold text-blue-900 border border-blue-300">Questions</th>
+                              <th className="px-6 py-3 text-left font-bold text-blue-900 border border-blue-300">📅 Created</th>
+                              <th className="px-6 py-3 text-center font-bold text-blue-900 border border-blue-300">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {quizSets.map((set, idx) => (
+                              <tr key={set.id} className={`border border-blue-200 hover:bg-blue-100 transition ${idx % 2 === 0 ? 'bg-white' : 'bg-blue-50'}`}>
+                                <td className="px-6 py-3 border border-blue-200 font-semibold text-gray-900">{set.name}</td>
+                                <td className="px-6 py-3 border border-blue-200 text-center">
+                                  <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold">{set.questionCount}</span>
+                                </td>
+                                <td className="px-6 py-3 border border-blue-200 text-gray-700 text-sm">
+                                  {new Date(set.createdAt).toLocaleDateString()}
+                                </td>
+                                <td className="px-6 py-3 border border-blue-200 text-center">
+                                  <button
+                                    onClick={() => setSelectedQuizSet(set)}
+                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold text-sm"
+                                  >
+                                    View Questions
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M3 7l9-4 9 4m0 0v10" />
+                        </svg>
+                        <p className="text-gray-500 font-medium">No question sets yet</p>
+                        <p className="text-gray-400 text-sm">Upload an Excel file with a quiz name to create a set</p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Upload History Table */}
+              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl shadow-lg border border-indigo-200 p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">📊 Upload History</h2>
+                    <p className="text-gray-600 text-sm mt-1">Track all Excel file uploads</p>
+                  </div>
+                </div>
+
+                {uploadHistoryLoading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center">
+                      <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                      <p className="mt-4 text-gray-600">Loading upload history...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {uploadHistory.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse">
+                          <thead>
+                            <tr className="bg-indigo-200 border border-indigo-300">
+                              <th className="px-6 py-3 text-left font-bold text-indigo-900 border border-indigo-300">📁 File Name</th>
+                              <th className="px-6 py-3 text-left font-bold text-indigo-900 border border-indigo-300">📝 Quiz Set</th>
+                              <th className="px-6 py-3 text-center font-bold text-indigo-900 border border-indigo-300">Questions</th>
+                              <th className="px-6 py-3 text-left font-bold text-indigo-900 border border-indigo-300">Status</th>
+                              <th className="px-6 py-3 text-left font-bold text-indigo-900 border border-indigo-300">📅 Uploaded</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {uploadHistory.map((upload, idx) => (
+                              <tr key={upload.id} className={`border border-indigo-200 hover:bg-indigo-100 transition ${idx % 2 === 0 ? 'bg-white' : 'bg-indigo-50'}`}>
+                                <td className="px-6 py-3 border border-indigo-200 font-semibold text-gray-900 text-sm">{upload.fileName}</td>
+                                <td className="px-6 py-3 border border-indigo-200 text-gray-700 text-sm">
+                                  {upload.quizSet ? (
+                                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">{upload.quizSet.name}</span>
+                                  ) : (
+                                    <span className="text-gray-500 italic text-xs">No set</span>
+                                  )}
+                                </td>
+                                <td className="px-6 py-3 border border-indigo-200 text-center">
+                                  <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm font-bold">{upload.questionCount}</span>
+                                </td>
+                                <td className="px-6 py-3 border border-indigo-200">
+                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                    upload.status === 'success' 
+                                      ? 'bg-green-100 text-green-800' 
+                                      : 'bg-red-100 text-red-800'
+                                  }`}>
+                                    {upload.status === 'success' ? '✓ Success' : '✗ Failed'}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-3 border border-indigo-200 text-gray-700 text-sm">
+                                  {new Date(upload.createdAt).toLocaleDateString()} {new Date(upload.createdAt).toLocaleTimeString()}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <p className="text-gray-500 font-medium">No uploads yet</p>
+                        <p className="text-gray-400 text-sm">Your upload history will appear here</p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Selected Quiz Set Full Page View */}
+              {selectedQuizSet && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 z-50 overflow-y-auto">
+                  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+                    {/* Header with Back Button */}
+                    <div className="sticky top-0 z-40 bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600 text-white shadow-xl">
+                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <button
+                              onClick={() => setSelectedQuizSet(null)}
+                              className="hover:bg-blue-700 rounded-lg p-2 transition transform hover:scale-110"
+                            >
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                              </svg>
+                            </button>
+                            <div>
+                              <h1 className="text-3xl font-bold flex items-center gap-2">
+                                📋 {selectedQuizSet.name}
+                              </h1>
+                              <p className="text-blue-100 text-sm mt-1">{selectedQuizSet.questionCount} questions</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setSelectedQuizSet(null)}
+                            className="hover:bg-blue-700 rounded-lg p-2 transition"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Main Content */}
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                      {selectedQuizSet.questionCount > 0 ? (
+                        <>
+                          {/* Questions Grid */}
+                          <div className="space-y-6">
+                            {(selectedQuizSet.id === 'unsorted' 
+                              ? selectedQuizSet.questions 
+                              : uploadedQuestions.filter(q => q.quizSetId === selectedQuizSet.id)
+                            ).map((q, idx) => (
+                              <div key={q.id} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all border border-gray-200 overflow-hidden">
+                                {/* Question Header */}
+                                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-3 mb-2">
+                                        <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold px-3 py-1 rounded-full">
+                                          Q{idx + 1}
+                                        </span>
+                                        <span className="text-xs text-gray-500 font-semibold">ID: {q.id} | QID: {q.questionId}</span>
+                                      </div>
+                                      <p className="text-lg font-bold text-gray-900">{q.question}</p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Options Grid */}
+                                <div className="px-6 py-6">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {[
+                                      { label: 'A', text: q.optionA },
+                                      { label: 'B', text: q.optionB },
+                                      { label: 'C', text: q.optionC },
+                                      { label: 'D', text: q.optionD }
+                                    ].map(option => (
+                                      <div 
+                                        key={option.label}
+                                        className={`p-4 rounded-lg border-2 transition-all ${
+                                          q.correctAnswer === option.label
+                                            ? 'bg-green-50 border-green-500 shadow-md'
+                                            : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                                        }`}
+                                      >
+                                        <div className="flex items-start gap-3">
+                                          <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
+                                            q.correctAnswer === option.label
+                                              ? 'bg-green-500 text-white'
+                                              : 'bg-gray-300 text-gray-700'
+                                          }`}>
+                                            {option.label}
+                                          </span>
+                                          <p className={`text-sm font-medium ${
+                                            q.correctAnswer === option.label
+                                              ? 'text-green-800 font-semibold'
+                                              : 'text-gray-700'
+                                          }`}>
+                                            {option.text}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Answer Indicator */}
+                                <div className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50 border-t border-green-200 flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    <span className="font-bold text-green-700">Correct Answer: Option {q.correctAnswer}</span>
+                                  </div>
+                                  <span className="text-xs text-gray-500">Added {new Date(q.createdAt).toLocaleDateString()}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Footer Stats */}
+                          <div className="mt-12 bg-white rounded-xl shadow-md border border-gray-200 p-6">
+                            <div className="grid grid-cols-3 gap-4">
+                              <div className="text-center">
+                                <p className="text-3xl font-bold text-blue-600">{selectedQuizSet.questionCount}</p>
+                                <p className="text-gray-600 text-sm font-medium">Total Questions</p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-3xl font-bold text-green-600">✓</p>
+                                <p className="text-gray-600 text-sm font-medium">All Questions Visible</p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-3xl font-bold text-indigo-600">📊</p>
+                                <p className="text-gray-600 text-sm font-medium">Quiz Ready</p>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center py-20">
+                          <svg className="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <p className="text-gray-500 font-medium text-lg">No questions in this set</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Uploaded Questions Section */}
               <div id="questions-section" className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl shadow-lg border border-purple-200 p-8">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">📋 Uploaded Questions</h2>
+                    <h2 className="text-2xl font-bold text-gray-900">📋 All Uploaded Questions</h2>
                     <p className="text-gray-600 text-sm mt-1">All questions in the database</p>
                   </div>
                   <div className="flex gap-3">

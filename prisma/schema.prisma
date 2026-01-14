@@ -34,6 +34,7 @@ model QuizSet {
   name            String
   description     String?
   questions       Question[]
+  uploadHistory   UploadHistory[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -66,4 +67,19 @@ model Quiz {
   updatedAt       DateTime @updatedAt
 
   @@map("quizzes")
+}
+
+model UploadHistory {
+  id              Int      @id @default(autoincrement())
+  fileName        String
+  quizName        String?
+  questionCount   Int
+  quizSetId       Int?
+  status          String   @default("success")
+  message         String?
+  createdAt       DateTime @default(now())
+
+  quizSet         QuizSet? @relation(fields: [quizSetId], references: [id], onDelete: SetNull)
+
+  @@map("upload_history")
 }
