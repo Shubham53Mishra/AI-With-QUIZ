@@ -53,7 +53,7 @@ export default function UploadedQuestionsPage() {
       <Navbar />
       <AdminSidebar />
 
-      <div className="pt-20 pb-10 ml-20">
+      <div className="pt-48 md:pt-56 pb-32 ml-20">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">📁 Uploaded Questions</h1>
@@ -107,7 +107,7 @@ export default function UploadedQuestionsPage() {
                           </div>
                           <div>
                             <h2 className="text-xl font-bold">{batchName}</h2>
-                            <p className="text-blue-100 text-sm">
+                            <p className="text-blue-100 text-sm mt-3">
                               {filteredQuestions.length} question{filteredQuestions.length !== 1 ? 's' : ''}
                             </p>
                           </div>

@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <main>
       <Navbar />
-      <div className="pt-16">
+      <div className="pt-32 sm:pt-40 md:pt-48">
         <Hero />
         <Features />
         <CTA />

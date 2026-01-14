@@ -1,14 +1,29 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from './Button';
 
-export default function Navbar() {
+export default function Navbar({ user }) {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+      if (response.ok) {
+        router.push('/auth/admin-login');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   return (
-    <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm z-50">
+    <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm z-50 pb-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
@@ -22,28 +37,46 @@ export default function Navbar() {
           </div>
 
           {/* Menu - Desktop */}
-          <div className="hidden md:flex items-center gap-6 lg:gap-8">
-            <a href="#features" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
-              Features
-            </a>
-            <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
-              Pricing
-            </a>
-            <a href="#about" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
-              About
-            </a>
-          </div>
+          {!user && (
+            <div className="hidden md:flex items-center gap-6 lg:gap-8">
+              <a href="#features" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
+                Features
+              </a>
+              <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
+                Pricing
+              </a>
+              <a href="#about" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
+                About
+              </a>
+            </div>
+          )}
 
-          {/* CTA Buttons */}
+          {/* User Info & CTA Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <Button variant="secondary" size="sm">
-              Sign in
-            </Button>
-            <Link href="/auth/signup">
-              <Button variant="primary" size="sm">
-                Sign up
-              </Button>
-            </Link>
+            {user && (
+              <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 bg-blue-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-900">{user.name || user.email}</span>
+                <button
+                  onClick={handleLogout}
+                  className="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded transition font-medium"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+            
+            {!user && (
+              <>
+                <Button variant="secondary" size="sm">
+                  Sign in
+                </Button>
+                <Link href="/auth/signup">
+                  <Button variant="primary" size="sm">
+                    Sign up
+                  </Button>
+                </Link>
+              </>
+            )}
             
             {/* Mobile Menu Button */}
             <button
@@ -65,27 +98,45 @@ export default function Navbar() {
         {isOpen && (
           <div className="md:hidden border-t border-gray-200 pb-4">
             <div className="space-y-3 pt-4">
-              <a 
-                href="#features" 
-                className="block text-gray-600 hover:text-gray-900 transition font-medium text-sm px-4 py-2 rounded hover:bg-gray-100"
-                onClick={() => setIsOpen(false)}
-              >
-                Features
-              </a>
-              <a 
-                href="#pricing" 
-                className="block text-gray-600 hover:text-gray-900 transition font-medium text-sm px-4 py-2 rounded hover:bg-gray-100"
-                onClick={() => setIsOpen(false)}
-              >
-                Pricing
-              </a>
-              <a 
-                href="#about" 
-                className="block text-gray-600 hover:text-gray-900 transition font-medium text-sm px-4 py-2 rounded hover:bg-gray-100"
-                onClick={() => setIsOpen(false)}
-              >
-                About
-              </a>
+              {!user && (
+                <>
+                  <a 
+                    href="#features" 
+                    className="block text-gray-600 hover:text-gray-900 transition font-medium text-sm px-4 py-2 rounded hover:bg-gray-100"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Features
+                  </a>
+                  <a 
+                    href="#pricing" 
+                    className="block text-gray-600 hover:text-gray-900 transition font-medium text-sm px-4 py-2 rounded hover:bg-gray-100"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Pricing
+                  </a>
+                  <a 
+                    href="#about" 
+                    className="block text-gray-600 hover:text-gray-900 transition font-medium text-sm px-4 py-2 rounded hover:bg-gray-100"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    About
+                  </a>
+                </>
+              )}
+              {user && (
+                <div className="px-4 py-2">
+                  <p className="text-sm font-medium text-gray-900 mb-2">{user.name || user.email}</p>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsOpen(false);
+                    }}
+                    className="w-full text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1.5 rounded transition font-medium"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

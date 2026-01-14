@@ -78,11 +78,11 @@ export default function QuizPage() {
     return (
       <main>
         <Navbar />
-        <div className="pt-20 pb-10">
+        <div className="pt-40 md:pt-48 pb-10">
           <div className="container mx-auto px-4 flex items-center justify-center min-h-screen">
             <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Loading questions...</p>
+              <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent"></div>
+              <p className="mt-6 text-gray-600 text-lg font-semibold">Loading questions...</p>
             </div>
           </div>
         </div>
@@ -94,10 +94,10 @@ export default function QuizPage() {
     return (
       <main>
         <Navbar />
-        <div className="pt-20 pb-10">
+        <div className="pt-40 md:pt-48 pb-10">
           <div className="container mx-auto px-4">
-            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-              <h1 className="text-3xl font-bold mb-4">No Questions Available</h1>
+            <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-xl p-12 text-center border border-blue-100">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">No Questions Available</h1>
               <p className="text-gray-600 mb-6">
                 Please ask your admin to upload questions from the Admin Panel.
               </p>
@@ -117,57 +117,61 @@ export default function QuizPage() {
   return (
     <main>
       <Navbar />
-      <div className="pt-20 pb-10">
-        <div className="container mx-auto px-4 max-w-2xl">
+      <div className="pt-40 md:pt-48 pb-16">
+        <div className="container mx-auto px-4 max-w-4xl">
           {showScore ? (
-            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-              <h1 className="text-4xl font-bold mb-6">Quiz Complete!</h1>
+            <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-2xl p-12 text-center border border-blue-100">
               <div className="mb-8">
-                <p className="text-6xl font-bold text-blue-600 mb-2">
-                  {score} / {questions.length}
+                <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent mb-4">Quiz Complete! 🎉</h1>
+              </div>
+              
+              <div className="mb-12 bg-white rounded-xl p-8 shadow-md border-2 border-blue-200">
+                <p className="text-7xl md:text-8xl font-bold text-blue-600 mb-4">
+                  {score}
                 </p>
-                <p className="text-gray-600 text-lg">
-                  You scored {Math.round((score / questions.length) * 100)}%
+                <p className="text-2xl text-gray-700 mb-2">out of {questions.length}</p>
+                <p className="text-xl md:text-2xl font-semibold text-transparent bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text">
+                  {Math.round((score / questions.length) * 100)}% Score
                 </p>
               </div>
 
-              <div className="space-y-4 mb-8 text-left bg-gray-50 p-6 rounded-lg">
-                <h2 className="text-xl font-bold mb-4">Review Answers</h2>
+              <div className="space-y-4 mb-12 text-left bg-white p-8 rounded-xl shadow-md border border-gray-200 max-h-96 overflow-y-auto">
+                <h2 className="text-2xl font-bold mb-6 text-gray-900">Answer Review</h2>
                 {questions.map((q, idx) => {
                   const isSkipped = skippedQuestions.has(idx);
                   const isCorrect = userAnswers[idx] === q.correctAnswer;
                   
                   return (
-                    <div key={idx} className={`border-b pb-4 last:border-b-0 ${isSkipped ? 'bg-yellow-50 p-3 rounded border-l-4 border-l-yellow-400' : ''}`}>
-                      <p className="font-semibold text-sm mb-2">
+                    <div key={idx} className={`rounded-lg p-4 border-l-4 ${
+                      isSkipped 
+                        ? 'bg-yellow-50 border-l-yellow-400' 
+                        : isCorrect 
+                        ? 'bg-green-50 border-l-green-500' 
+                        : 'bg-red-50 border-l-red-500'
+                    }`}>
+                      <p className="font-bold text-gray-900 mb-2">
                         Q{idx + 1}: {q.question}
-                        {isSkipped && <span className="text-yellow-600 font-bold ml-2">[SKIPPED]</span>}
+                        {isSkipped && <span className="text-yellow-600 ml-2 font-bold text-sm">[SKIPPED]</span>}
                       </p>
-                      <div className="text-sm space-y-1">
+                      <div className="text-sm space-y-1 text-gray-700">
                         <p>
                           Your answer:{' '}
                           <span
                             className={
                               isSkipped 
-                                ? 'text-yellow-600 font-semibold'
+                                ? 'text-yellow-600 font-bold'
                                 : isCorrect
-                                ? 'text-green-600 font-semibold'
-                                : 'text-red-600 font-semibold'
+                                ? 'text-green-600 font-bold'
+                                : 'text-red-600 font-bold'
                             }
                           >
                             {userAnswers[idx] || 'Not answered'}
                           </span>
                         </p>
-                        {!isSkipped && userAnswers[idx] !== q.correctAnswer && (
+                        {!isCorrect && (
                           <p>
                             Correct answer:{' '}
-                            <span className="text-green-600 font-semibold">{q.correctAnswer}</span>
-                          </p>
-                        )}
-                        {isSkipped && (
-                          <p>
-                            Correct answer:{' '}
-                            <span className="text-green-600 font-semibold">{q.correctAnswer}</span>
+                            <span className="text-green-600 font-bold">{q.correctAnswer}</span>
                           </p>
                         )}
                       </div>
@@ -178,25 +182,25 @@ export default function QuizPage() {
 
               <button
                 onClick={handleRestart}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-semibold"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-lg hover:shadow-lg transition font-bold text-lg transform hover:scale-105"
               >
-                Retake Quiz
+                🔄 Retake Quiz
               </button>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-semibold text-gray-600">
-                    Question {currentQuestion + 1} of {questions.length}
+            <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 border border-gray-100">
+              <div className="mb-8">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+                  <span className="text-base font-bold text-blue-600 bg-blue-50 px-4 py-2 rounded-full">
+                    Question {currentQuestion + 1} / {questions.length}
                   </span>
-                  <span className="text-sm font-semibold text-gray-600">
+                  <span className="text-base font-bold text-green-600 bg-green-50 px-4 py-2 rounded-full">
                     Score: {score}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 h-3 rounded-full transition-all duration-300"
                     style={{
                       width: `${((currentQuestion + 1) / questions.length) * 100}%`,
                     }}
@@ -204,58 +208,66 @@ export default function QuizPage() {
                 </div>
               </div>
 
-              <h2 className="text-2xl font-bold mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold mb-10 text-gray-900 leading-snug">
                 {questions[currentQuestion].question}
               </h2>
 
-              <div className="space-y-3 mb-8">
+              <div className="space-y-4 mb-10">
                 {['A', 'B', 'C', 'D'].map((option) => (
                   <button
                     key={option}
                     onClick={() => handleAnswerClick(option)}
-                    className={`w-full p-4 text-left rounded-lg border-2 transition ${
+                    className={`w-full p-5 text-left rounded-xl border-2 transition transform hover:scale-102 ${
                       userAnswers[currentQuestion] === option
-                        ? 'border-blue-600 bg-blue-50'
-                        : 'border-gray-200 hover:border-blue-400'
+                        ? 'border-blue-600 bg-blue-50 shadow-md'
+                        : 'border-gray-200 hover:border-blue-400 hover:bg-gray-50'
                     }`}
                   >
-                    <span className="font-semibold">{option}.</span>{' '}
-                    {questions[currentQuestion][`option${option}`]}
+                    <div className="flex items-start gap-4">
+                      <span className={`font-bold text-lg flex-shrink-0 ${
+                        userAnswers[currentQuestion] === option ? 'text-blue-600' : 'text-gray-400'
+                      }`}>
+                        {option}.
+                      </span>
+                      <span className="text-base md:text-lg text-gray-800">
+                        {questions[currentQuestion][`option${option}`]}
+                      </span>
+                    </div>
                   </button>
                 ))}
               </div>
 
-              <div className="flex gap-4 justify-between">
+              <div className="flex flex-col sm:flex-row gap-4 justify-between">
                 <button
                   onClick={handlePreviousQuestion}
                   disabled={currentQuestion === 0}
-                  className="px-6 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+                  className="px-6 py-3 rounded-lg border-2 border-gray-300 hover:bg-gray-50 transition disabled:opacity-40 disabled:cursor-not-allowed font-bold flex-1 sm:flex-none"
                 >
                   ← Previous
                 </button>
 
                 <button
                   onClick={handleSkipQuestion}
-                  className="px-6 py-2 rounded-lg border border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition font-semibold"
+                  className="px-6 py-3 rounded-lg border-2 border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition font-bold flex-1 sm:flex-none"
                 >
                   ⊘ Skip
                 </button>
 
-                <div className="text-sm text-gray-600">
-                  {skippedQuestions.has(currentQuestion) ? (
-                    <span className="text-yellow-600 font-semibold">⊘ Skipped</span>
-                  ) : userAnswers[currentQuestion] ? (
-                    <span className="text-green-600 font-semibold">✓ Answered</span>
-                  ) : (
-                    <span className="text-orange-600 font-semibold">Not answered</span>
-                  )}
+                <div className={`py-3 px-4 rounded-lg font-bold text-center flex-1 sm:flex-none ${
+                  skippedQuestions.has(currentQuestion) 
+                    ? 'bg-yellow-100 text-yellow-700' 
+                    : userAnswers[currentQuestion] 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-orange-100 text-orange-700'
+                }`}>
+                  {skippedQuestions.has(currentQuestion) ? '⊘ Skipped' : userAnswers[currentQuestion] ? '✓ Answered' : '❌ Not answered'}
                 </div>
 
                 <button
                   onClick={handleNextQuestion}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 font-semibold"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition disabled:opacity-40 font-bold flex-1 sm:flex-none transform hover:scale-105"
                 >
-                  {currentQuestion === questions.length - 1 ? 'Finish' : 'Next →'}
+                  {currentQuestion === questions.length - 1 ? 'Finish ✓' : 'Next →'}
                 </button>
               </div>
             </div>

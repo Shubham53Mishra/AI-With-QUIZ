@@ -119,7 +119,22 @@ export default function SignupPage() {
     setSuccess('');
     setLoading(true);
 
+    // Basic validation
+    if (!formData.email || !formData.password) {
+      setError('Email and password are required');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
+
     try {
+      console.log('Submitting form data:', { ...formData, password: '***' });
+      
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
@@ -128,10 +143,14 @@ export default function SignupPage() {
         body: JSON.stringify(formData),
       });
 
+      console.log('Signup response status:', response.status);
+      
       const data = await response.json();
+      console.log('Signup response data:', data);
 
       if (!response.ok) {
         setError(data.error || 'Signup failed');
+        setLoading(false);
         return;
       }
 
@@ -149,8 +168,8 @@ export default function SignupPage() {
         router.push('/auth/login');
       }, 1500);
     } catch (err) {
-      setError('An error occurred. Please try again.');
-      console.error(err);
+      console.error('Signup error:', err);
+      setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -4,13 +4,20 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ onSidebarStateChange }) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [isHovering, setIsHovering] = useState(false);
   const [uploadedQuestions, setUploadedQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   const router = useRouter();
+
+  // Notify parent when sidebar state changes
+  useEffect(() => {
+    if (onSidebarStateChange) {
+      onSidebarStateChange(!isCollapsed || isHovering);
+    }
+  }, [isCollapsed, isHovering, onSidebarStateChange]);
 
   const menuItems = [
     {
