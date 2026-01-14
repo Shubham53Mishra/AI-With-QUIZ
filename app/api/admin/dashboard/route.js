@@ -5,15 +5,34 @@ export async function GET(request) {
     // Get total users count
     const totalUsers = await prisma.user.count();
 
-    // Get total admins count
+    // Get total admins count (only 'admin' role, not 'assistant admin')
     const totalAdmins = await prisma.user.count({
       where: {
         role: 'admin',
       },
     });
 
-    // Get regular users count
-    const regularUsers = totalUsers - totalAdmins;
+    // Get assistant admins count
+    const assistantAdmins = await prisma.user.count({
+      where: {
+        role: 'assistant admin',
+      },
+    });
+
+    // Get regular users count (not blocked, not admin, not assistant admin)
+    const regularUsers = await prisma.user.count({
+      where: {
+        role: 'user',
+        isBlocked: false,
+      },
+    });
+
+    // Get blocked users count
+    const blockedUsers = await prisma.user.count({
+      where: {
+        isBlocked: true,
+      },
+    });
 
     // Get total quizzes count
     const totalQuizzes = await prisma.quiz.count();
@@ -108,7 +127,9 @@ export async function GET(request) {
         stats: {
           totalUsers,
           totalAdmins,
+          assistantAdmins,
           regularUsers,
+          blockedUsers,
           totalQuizzes,
           recentUsers,
           avgQuizzesPerUser: totalUsers > 0 ? (totalQuizzes / totalUsers).toFixed(2) : 0,

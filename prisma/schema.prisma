@@ -20,6 +20,7 @@ model Question {
   optionD         String
   correctAnswer   String
   quizSetId       Int?
+  fileName        String?  @default("Uploaded Questions")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   

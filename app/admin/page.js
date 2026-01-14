@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Navbar from '../../components/Navbar';
+import AdminSidebar from '../../components/AdminSidebar';
 import ExcelUploader from '../../components/ExcelUploader';
 import { Button } from '@/components/ui/button';
 
 export default function AdminPage() {
+  const searchParams = useSearchParams();
   const [questions, setQuestions] = useState([]);
   const [formData, setFormData] = useState({
     question: '',
@@ -37,6 +40,62 @@ export default function AdminPage() {
   const [quizSetsLoading, setQuizSetsLoading] = useState(false);
   const [selectedQuizSet, setSelectedQuizSet] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    // Check if tab parameter is in URL
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    // Watch for hash changes to switch tabs
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash === '#questions') {
+        setActiveTab('questions');
+      } else if (hash === '#analytics') {
+        setActiveTab('analytics');
+      } else if (hash === '#users') {
+        setActiveTab('users');
+      } else if (hash === '#dashboard' || !hash) {
+        setActiveTab('dashboard');
+      }
+    };
+    
+    window.addEventListener('hashchange', handleHashChange);
+    
+    // Intersection observer to auto-switch tabs when sections come into view
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const sectionId = entry.target.id;
+          if (sectionId === 'questions-section') {
+            setActiveTab('questions');
+          } else if (sectionId === 'analytics-section') {
+            setActiveTab('analytics');
+          } else if (sectionId === 'users-section') {
+            setActiveTab('users');
+          }
+        }
+      });
+    }, { threshold: 0.3 });
+
+    // Observe sections
+    const questionsSection = document.getElementById('questions-section');
+    const analyticsSection = document.getElementById('analytics-section');
+    const usersSection = document.getElementById('users-section');
+    
+    if (questionsSection) observer.observe(questionsSection);
+    if (analyticsSection) observer.observe(analyticsSection);
+    if (usersSection) observer.observe(usersSection);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     fetchDashboardData();
@@ -305,9 +364,11 @@ export default function AdminPage() {
   return (
     <main>
       <Navbar />
-        
-        {/* Quiz Preview Modal */}
-        {quizPreviewModal && quizPreviewModal.length > 0 && (
+      <AdminSidebar />
+      
+      {/* Modals */}
+      {/* Quiz Preview Modal */}
+      {quizPreviewModal && quizPreviewModal.length > 0 && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
@@ -408,7 +469,7 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
-      )}
+        )}
       
       {/* Role Update Confirmation Modal */}
       {roleUpdateModal && (
@@ -563,7 +624,8 @@ export default function AdminPage() {
           </div>
         </div>
       )}
-      <div className="pt-20 pb-10">
+
+      <div className="pt-20 pb-10 ml-20">
         <div className="container mx-auto px-4 max-w-6xl">
           <h1 className="text-4xl font-bold mb-8 text-center">Admin Dashboard</h1>
 
@@ -632,18 +694,69 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    {/* Total Admins */}
+                    {/* Regular Users */}
                     <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-gray-600 text-sm font-medium">Total Admins</p>
+                          <p className="text-gray-600 text-sm font-medium">Regular Users</p>
                           <p className="text-3xl font-bold text-gray-900 mt-2">
-                            {dashboardData?.stats.totalAdmins}
+                            {dashboardData?.stats.regularUsers}
                           </p>
                         </div>
                         <div className="bg-green-100 rounded-lg p-4">
                           <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Assistant Admins */}
+                    <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-gray-600 text-sm font-medium">Assistant Admins</p>
+                          <p className="text-3xl font-bold text-gray-900 mt-2">
+                            {dashboardData?.stats.assistantAdmins}
+                          </p>
+                        </div>
+                        <div className="bg-yellow-100 rounded-lg p-4">
+                          <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Admin Users */}
+                    <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-gray-600 text-sm font-medium">Admin Users</p>
+                          <p className="text-3xl font-bold text-gray-900 mt-2">
+                            {dashboardData?.stats.totalAdmins}
+                          </p>
+                        </div>
+                        <div className="bg-orange-100 rounded-lg p-4">
+                          <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Blocked Users */}
+                    <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-gray-600 text-sm font-medium">Blocked Users</p>
+                          <p className="text-3xl font-bold text-gray-900 mt-2">
+                            {dashboardData?.stats.blockedUsers}
+                          </p>
+                        </div>
+                        <div className="bg-red-100 rounded-lg p-4">
+                          <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4v2m0 1a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                         </div>
                       </div>
@@ -668,7 +781,7 @@ export default function AdminPage() {
                   </div>
 
                   {/* Users Cards with Tabs */}
-                  <div className="bg-white rounded-lg shadow-lg p-6">
+                  <div id="users-section" className="bg-white rounded-lg shadow-lg p-6">
                     {/* Tab Navigation */}
                     <div className="flex gap-2 mb-6 border-b border-gray-300">
                       <button
@@ -1383,7 +1496,7 @@ export default function AdminPage() {
 
           {/* Analytics Tab */}
           {activeTab === 'analytics' && (
-            <div className="space-y-8">
+            <div id="analytics-section" className="space-y-8">
               {/* Premium Header */}
               <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl shadow-lg p-8 text-white">
                 <h2 className="text-3xl font-bold mb-2">Analytics Dashboard</h2>
@@ -1445,24 +1558,43 @@ export default function AdminPage() {
                   </p>
                 </div>
 
-                {/* Recent Users Card */}
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-lg border border-purple-200 p-6 hover:shadow-xl transition-shadow">
+                {/* Assistant Admins Card */}
+                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-lg border border-yellow-200 p-6 hover:shadow-xl transition-shadow">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="bg-purple-600 rounded-lg p-3">
+                    <div className="bg-yellow-600 rounded-lg p-3">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                       </svg>
                     </div>
-                    <span className="text-xs font-bold text-purple-600 bg-purple-200 px-3 py-1 rounded-full">New</span>
+                    <span className="text-xs font-bold text-yellow-600 bg-yellow-200 px-3 py-1 rounded-full">Assist</span>
                   </div>
-                  <p className="text-purple-600 text-sm font-semibold mb-1">New Users (7d)</p>
-                  <p className="text-4xl font-bold text-purple-900">{dashboardData?.stats.recentUsers}</p>
-                  <p className="text-xs text-purple-600 mt-3">Last 7 days</p>
+                  <p className="text-yellow-600 text-sm font-semibold mb-1">Assistant Admins</p>
+                  <p className="text-4xl font-bold text-yellow-900">{dashboardData?.stats.assistantAdmins}</p>
+                  <p className="text-xs text-yellow-600 mt-3">
+                    {dashboardData?.stats.totalUsers > 0
+                      ? ((dashboardData?.stats.assistantAdmins / dashboardData?.stats.totalUsers) * 100).toFixed(1)
+                      : 0}% of total
+                  </p>
                 </div>
               </div>
 
-              {/* Secondary Metrics */}
+              {/* Blocked Users and Other Stats */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Blocked Users Card */}
+                <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl shadow-lg border border-red-200 p-8 hover:shadow-xl transition-shadow">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="bg-red-600 rounded-lg p-3">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4v2m0 1a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <span className="text-xs font-bold text-red-600 bg-red-200 px-3 py-1 rounded-full">Blocked</span>
+                  </div>
+                  <p className="text-red-600 text-sm font-semibold mb-2">Blocked Users</p>
+                  <p className="text-5xl font-bold text-red-900">{dashboardData?.stats.blockedUsers}</p>
+                  <p className="text-xs text-red-600 mt-3">🚫 Suspended accounts</p>
+                </div>
+
                 {/* Total Quizzes */}
                 <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl shadow-lg border border-indigo-200 p-8 hover:shadow-xl transition-shadow">
                   <div className="flex items-center justify-between mb-4">
@@ -1577,7 +1709,7 @@ export default function AdminPage() {
               </div>
 
               {/* Uploaded Questions Section */}
-              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl shadow-lg border border-purple-200 p-8">
+              <div id="questions-section" className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl shadow-lg border border-purple-200 p-8">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">📋 Uploaded Questions</h2>
@@ -1846,7 +1978,7 @@ export default function AdminPage() {
             </div>
           )}
         </div>
-        </div>
-      </main>
+      </div>
+    </main>
     );
 }

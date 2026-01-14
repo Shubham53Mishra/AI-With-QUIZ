@@ -14,6 +14,9 @@ export async function POST(request) {
       );
     }
 
+    // Extract filename
+    const fileName = file.name || 'Uploaded Questions';
+
     const buffer = await file.arrayBuffer();
     const workbook = XLSX.read(buffer, { type: 'array' });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -69,6 +72,7 @@ export async function POST(request) {
             optionC: String(row['Option C']),
             optionD: String(row['Option D']),
             correctAnswer: String(row['Correct Answer']),
+            fileName: fileName,
             quizSetId: quizSet ? quizSet.id : null,
           },
         })
