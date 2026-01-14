@@ -303,75 +303,8 @@ export default function AdminPage() {
   };
 
   return (
-    <main className="flex">
-      {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-80' : 'w-20'} bg-gradient-to-b from-blue-900 to-blue-800 text-white transition-all duration-300 overflow-y-auto max-h-screen fixed left-0 top-0 bottom-0 z-40`}>
-        <div className="p-4 flex justify-between items-center border-b border-blue-700 mt-20">
-          <h3 className={`font-bold text-lg ${!sidebarOpen && 'hidden'}`}>📚 Quiz Sets</h3>
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="hover:bg-blue-700 p-1 rounded transition"
-          >
-            {sidebarOpen ? '◀' : '▶'}
-          </button>
-        </div>
-
-        <div className={`p-4 space-y-2 ${!sidebarOpen && 'hidden'}`}>
-          {quizSetsLoading ? (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-            </div>
-          ) : quizSets.length > 0 ? (
-            quizSets.map((qs) => (
-              <button
-                key={qs.id}
-                onClick={() => openQuizSetPreview(qs.id)}
-                className={`w-full text-left p-3 rounded-lg transition ${
-                  selectedQuizSet?.id === qs.id
-                    ? 'bg-blue-500 shadow-lg'
-                    : 'bg-blue-700 hover:bg-blue-600'
-                }`}
-              >
-                <div className="font-semibold truncate">{qs.name}</div>
-                <div className="text-xs text-blue-100 mt-1">
-                  📝 {qs.questionCount} questions
-                </div>
-                <div className="text-xs text-blue-200 mt-1">
-                  {new Date(qs.createdAt).toLocaleDateString()}
-                </div>
-              </button>
-            ))
-          ) : (
-            <div className="text-center py-8 text-blue-300">
-              <p className="text-sm">No quiz sets yet</p>
-            </div>
-          )}
-        </div>
-
-        {/* Collapsed View */}
-        {!sidebarOpen && quizSets.length > 0 && (
-          <div className="p-2 space-y-2">
-            {quizSets.slice(0, 5).map((qs) => (
-              <button
-                key={qs.id}
-                onClick={() => openQuizSetPreview(qs.id)}
-                title={qs.name}
-                className={`w-full text-center p-2 rounded-lg transition text-xs font-semibold ${
-                  selectedQuizSet?.id === qs.id
-                    ? 'bg-blue-500'
-                    : 'bg-blue-700 hover:bg-blue-600'
-                }`}
-              >
-                📝
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Main Content */}
-      <div className={`${sidebarOpen ? 'ml-80' : 'ml-20'} w-full transition-all duration-300`}>
-        <Navbar />
+    <main>
+      <Navbar />
         
         {/* Quiz Preview Modal */}
         {quizPreviewModal && quizPreviewModal.length > 0 && (
@@ -1913,8 +1846,7 @@ export default function AdminPage() {
             </div>
           )}
         </div>
-      </div>
-    </div>
-    </main>
-  );
+        </div>
+      </main>
+    );
 }
