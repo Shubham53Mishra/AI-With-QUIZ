@@ -52,7 +52,8 @@ model User {
   isBlocked       Boolean  @default(false)
   blockReason     String?
   blockedAt       DateTime?
-	lastQuestionTimestamp DateTime? // When the last question was shown
+  lastQuestionTimestamp DateTime? // When the last question was shown
+  lastQuestionIndex     Int?      // Which question user is on
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
