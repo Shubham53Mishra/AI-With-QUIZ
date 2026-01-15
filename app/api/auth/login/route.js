@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { signJwt } from '@/lib/jwt';
 
 export async function POST(request) {
   try {
@@ -47,6 +48,19 @@ export async function POST(request) {
 
     // Return user data without password
     const { password: _, ...userWithoutPassword } = user;
+      // Create JWT
+      const token = signJwt({ id: user.id, email: user.email, role: user.role, name: user.name });
+      // Set cookie
+      return new Response(
+        JSON.stringify({ message: 'Login successful', user: userWithoutPassword }),
+        {
+          status: 200,
+          headers: {
+            'Set-Cookie': `token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
     return Response.json(
       { message: 'Login successful', user: userWithoutPassword },

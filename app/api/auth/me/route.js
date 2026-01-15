@@ -4,8 +4,7 @@ import jwt from 'jsonwebtoken';
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get('adminToken')?.value || 
-                  cookieStore.get('authToken')?.value;
+    const token = cookieStore.get('token')?.value;
 
     if (!token) {
       return new Response(JSON.stringify({ error: 'Not authenticated' }), {
@@ -17,10 +16,12 @@ export async function GET() {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
 
     return new Response(JSON.stringify({
-      id: decoded.id,
-      email: decoded.email,
-      name: decoded.name,
-      role: decoded.role,
+      user: {
+        id: decoded.id,
+        email: decoded.email,
+        name: decoded.name,
+        role: decoded.role,
+      }
     }), {
       status: 200,
     });

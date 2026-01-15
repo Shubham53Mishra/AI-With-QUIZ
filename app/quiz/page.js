@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Timer from '@/components/Timer';
+import { getCurrentUser } from '@/lib/auth';
 
 export default function QuizPage() {
   const [question, setQuestion] = useState(null);
@@ -10,8 +11,10 @@ export default function QuizPage() {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [unlockTime, setUnlockTime] = useState(null);
   const [error, setError] = useState('');
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
+    getCurrentUser().then(setUser);
     fetchNextQuestion();
     // eslint-disable-next-line
   }, []);
@@ -83,7 +86,7 @@ export default function QuizPage() {
   if (isLoading) {
     return (
       <main>
-        <Navbar />
+        <Navbar user={user} />
         <div className="pt-40 md:pt-48 pb-10">
           <div className="container mx-auto px-4 flex items-center justify-center min-h-screen">
             <div className="text-center">
@@ -99,7 +102,7 @@ export default function QuizPage() {
   if (error) {
     return (
       <main>
-        <Navbar />
+        <Navbar user={user} />
         <div className="pt-40 md:pt-48 pb-10">
           <div className="container mx-auto px-4 flex items-center justify-center min-h-screen">
             <div className="text-center">
@@ -116,7 +119,7 @@ export default function QuizPage() {
 
   return (
     <main>
-      <Navbar />
+      <Navbar user={user} />
       <div className="pt-40 md:pt-48 pb-16">
         <div className="container mx-auto px-4 max-w-2xl">
           {question ? (

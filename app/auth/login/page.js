@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '../../../components/Navbar';
+import { getCurrentUser } from '../../../lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
+  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -15,6 +17,10 @@ export default function LoginPage() {
   const [blockReason, setBlockReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    getCurrentUser().then(setUser);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,7 +67,7 @@ export default function LoginPage() {
 
       // Redirect to dashboard after 1.5 seconds
       setTimeout(() => {
-        router.push('/quiz');
+        window.location.href = '/quiz';
       }, 1500);
     } catch (err) {
       setError('An error occurred. Please try again.');
@@ -73,7 +79,7 @@ export default function LoginPage() {
 
   return (
     <>
-      <Navbar />
+      <Navbar user={user} />
       <div className="min-h-screen bg-gradient-to-b from-white via-blue-50 to-white pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header Section */}

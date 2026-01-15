@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from './Button';
+import { Button as UIButton } from './ui/button';
 
 export default function Navbar({ user }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,7 +16,7 @@ export default function Navbar({ user }) {
         method: 'POST',
       });
       if (response.ok) {
-        router.push('/auth/admin-login');
+        window.location.href = '/';
       }
     } catch (error) {
       console.error('Logout error:', error);
@@ -37,55 +38,61 @@ export default function Navbar({ user }) {
           </div>
 
           {/* Menu - Desktop */}
-          {!user && (
-            <div className="hidden md:flex items-center gap-6 lg:gap-8">
-              <a href="#features" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
-                Features
-              </a>
-              <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
-                Pricing
-              </a>
-              <a href="#about" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
-                About
-              </a>
-            </div>
-          )}
+          <div className="hidden md:flex items-center gap-6 lg:gap-8">
+            <a href="#features" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
+              Features
+            </a>
+            <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
+              Pricing
+            </a>
+            <a href="#about" className="text-gray-600 hover:text-gray-900 transition font-medium text-sm lg:text-base">
+              About
+            </a>
+          </div>
 
-          {/* User Info & CTA Buttons */}
+          {/* CTA Buttons & Mobile Menu Toggle */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {user && (
-              <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 bg-blue-50 rounded-lg">
-                <span className="text-sm font-medium text-gray-900">{user.name || user.email}</span>
-                <button
+            {user ? (
+              <div className="hidden sm:flex items-center gap-3">
+                <div className="flex items-center gap-2 px-4 py-2 bg-blue-600 rounded-lg border border-blue-700">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-blue-100 font-medium">Welcome</span>
+                    <span className="text-sm font-semibold text-white">{user.name || user.email}</span>
+                  </div>
+                </div>
+                <UIButton
                   onClick={handleLogout}
-                  className="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded transition font-medium"
+                  variant="destructive"
+                  size="sm"
+                  className="font-medium"
                 >
                   Logout
-                </button>
+                </UIButton>
               </div>
-            )}
-            
-            {!user && (
+            ) : (
               <>
                 <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => router.push('/auth/login')}
+                  as={Link}
+                  href="/auth/signup"
+                  variant="primary"
+                  className="text-xs sm:text-sm"
                 >
-                  Sign in
+                  Signup
                 </Button>
-                <Link href="/auth/signup">
-                  <Button variant="primary" size="sm">
-                    Sign up
-                  </Button>
-                </Link>
+                <Button
+                  as={Link}
+                  href="/auth/login"
+                  variant="outline"
+                  className="text-xs sm:text-sm"
+                >
+                  Signin
+                </Button>
               </>
             )}
-            
-            {/* Mobile Menu Button */}
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition"
+              aria-label="Toggle menu"
             >
               <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isOpen ? (
@@ -98,48 +105,70 @@ export default function Navbar({ user }) {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu section starts here */}
         {isOpen && (
           <div className="md:hidden border-t border-gray-200 pb-4">
             <div className="space-y-3 pt-4">
-              {!user && (
-                <>
-                  <a 
-                    href="#features" 
-                    className="block text-gray-600 hover:text-gray-900 transition font-medium text-sm px-4 py-2 rounded hover:bg-gray-100"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Features
-                  </a>
-                  <a 
-                    href="#pricing" 
-                    className="block text-gray-600 hover:text-gray-900 transition font-medium text-sm px-4 py-2 rounded hover:bg-gray-100"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Pricing
-                  </a>
-                  <a 
-                    href="#about" 
-                    className="block text-gray-600 hover:text-gray-900 transition font-medium text-sm px-4 py-2 rounded hover:bg-gray-100"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    About
-                  </a>
-                </>
-              )}
-              {user && (
-                <div className="px-4 py-2">
-                  <p className="text-sm font-medium text-gray-900 mb-2">{user.name || user.email}</p>
-                  <button
+              <a 
+                href="#features" 
+                className="block text-gray-600 hover:text-gray-900 transition font-medium text-sm px-4 py-2 rounded hover:bg-gray-100"
+                onClick={() => setIsOpen(false)}
+              >
+                Features
+              </a>
+              <a 
+                href="#pricing" 
+                className="block text-gray-600 hover:text-gray-900 transition font-medium text-sm px-4 py-2 rounded hover:bg-gray-100"
+                onClick={() => setIsOpen(false)}
+              >
+                Pricing
+              </a>
+              <a 
+                href="#about" 
+                className="block text-gray-600 hover:text-gray-900 transition font-medium text-sm px-4 py-2 rounded hover:bg-gray-100"
+                onClick={() => setIsOpen(false)}
+              >
+                About
+              </a>
+              {user ? (
+                <div className="px-4 py-3">
+                  <div className="mb-3 p-3 bg-blue-600 rounded-lg border border-blue-700">
+                    <p className="text-xs text-blue-100 font-medium mb-1">Welcome</p>
+                    <p className="text-sm font-semibold text-white">{user.name || user.email}</p>
+                  </div>
+                  <UIButton
                     onClick={() => {
                       handleLogout();
                       setIsOpen(false);
                     }}
-                    className="w-full text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1.5 rounded transition font-medium"
+                    variant="destructive"
+                    size="sm"
+                    className="w-full font-medium"
                   >
                     Logout
-                  </button>
+                  </UIButton>
                 </div>
+              ) : (
+                <>
+                  <Button
+                    as={Link}
+                    href="/auth/signup"
+                    variant="primary"
+                    className="w-full text-xs sm:text-sm mt-2"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Signup
+                  </Button>
+                  <Button
+                    as={Link}
+                    href="/auth/login"
+                    variant="outline"
+                    className="w-full text-xs sm:text-sm mt-2"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Signin
+                  </Button>
+                </>
               )}
             </div>
           </div>

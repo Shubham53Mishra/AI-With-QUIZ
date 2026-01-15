@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '../../../components/Navbar';
+import { getCurrentUser } from '../../../lib/auth';
 
 export default function AdminSignupPage() {
   const router = useRouter();
+  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -18,6 +20,10 @@ export default function AdminSignupPage() {
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showAdminCode, setShowAdminCode] = useState(false);
+
+  useEffect(() => {
+    getCurrentUser().then(setUser);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -71,7 +77,7 @@ export default function AdminSignupPage() {
 
   return (
     <>
-      <Navbar />
+      <Navbar user={user} />
       <div className="min-h-screen bg-gradient-to-b from-white via-blue-50 to-white pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header Section */}
