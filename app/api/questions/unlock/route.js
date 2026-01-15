@@ -23,6 +23,9 @@ export async function GET() {
     let lastIndex = user.lastQuestionIndex || 0;
     let lastUnlock = user.lastQuestionTimestamp;
     let now = new Date();
+    
+    // If lastUnlock is null (first time accessing), allow fetch but don't set timestamp yet
+    // Timer will only start when question is actually submitted
     let canUnlock = !lastUnlock || (now - new Date(lastUnlock)) >= 18 * 60 * 60 * 1000;
 
     if (!canUnlock) {
@@ -47,19 +50,24 @@ export async function GET() {
       return new Response(JSON.stringify({ success: false, message: 'No more questions' }), { status: 200 });
     }
 
-    // Update user last unlock info
+    // Only update lastQuestionIndex for now
+    // lastQuestionTimestamp will be set when the question is actually submitted
     await prisma.user.update({
       where: { id: userId },
       data: {
         lastQuestionIndex: lastIndex + 1,
-        lastQuestionTimestamp: now,
       },
     });
+
+    // Calculate next unlock time based on when this question will be submitted
+    const nextUnlock = lastUnlock 
+      ? new Date(new Date(lastUnlock).getTime() + 18 * 60 * 60 * 1000)
+      : new Date(now.getTime() + 18 * 60 * 60 * 1000);
 
     return new Response(JSON.stringify({
       success: true,
       question: nextQuestion,
-      nextUnlock: new Date(now.getTime() + 18 * 60 * 60 * 1000),
+      nextUnlock: nextUnlock,
     }), { status: 200 });
   } catch (error) {
     console.error('Unlock question error:', error);

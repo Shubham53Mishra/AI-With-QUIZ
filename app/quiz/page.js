@@ -14,6 +14,8 @@ export default function QuizPage() {
   const [user, setUser] = useState(null);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [answered, setAnswered] = useState(false);
+  const [feedback, setFeedback] = useState(null); // For correct/wrong feedback
+  const [isCorrect, setIsCorrect] = useState(null);
 
   useEffect(() => {
     getCurrentUser().then(setUser);
@@ -26,6 +28,8 @@ export default function QuizPage() {
     setError('');
     setSelectedAnswer(null);
     setAnswered(false);
+    setFeedback(null);
+    setIsCorrect(null);
     try {
       const response = await fetch('/api/questions/unlock');
       const data = await response.json();
@@ -58,10 +62,35 @@ export default function QuizPage() {
     
     setAnswered(true);
     
-    // After a short delay, fetch the next question
+    try {
+      // Submit the answer and start the 18-hour timer
+      const submitResponse = await fetch('/api/questions/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          answer: selectedAnswer,
+          questionId: question.id 
+        }),
+      });
+      
+      const submitData = await submitResponse.json();
+      
+      if (submitResponse.ok) {
+        setIsCorrect(submitData.isCorrect);
+        setFeedback(submitData.message);
+      } else {
+        console.error('Error submitting answer:', submitData.error);
+        setFeedback('Error submitting answer');
+      }
+    } catch (err) {
+      console.error('Error submitting answer:', err);
+      setFeedback('Error submitting answer');
+    }
+    
+    // After a delay, fetch the next question info
     setTimeout(() => {
       fetchNextQuestion();
-    }, 1500);
+    }, 2000);
   };
 
 
@@ -151,6 +180,16 @@ export default function QuizPage() {
               >
                 {answered ? 'Loading next question...' : 'Submit Answer'}
               </button>
+
+              {feedback && (
+                <div className={`mt-6 p-4 rounded-xl font-semibold text-center text-white transition ${
+                  isCorrect 
+                    ? 'bg-green-500 shadow-lg' 
+                    : 'bg-red-500 shadow-lg'
+                }`}>
+                  {feedback}
+                </div>
+              )}
             </div>
           ) : (
             <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 border border-gray-100 text-center">
