@@ -67,7 +67,11 @@ export default function Navbar({ user }) {
             
             {!user && (
               <>
-                <Button variant="secondary" size="sm">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => router.push('/auth/login')}
+                >
                   Sign in
                 </Button>
                 <Link href="/auth/signup">
