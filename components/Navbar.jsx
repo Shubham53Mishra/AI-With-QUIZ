@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Button from './Button';
 import { Button as UIButton } from './ui/button';
 
-export default function Navbar({ user }) {
+export default function Navbar({ user, submittedCount = 0 }) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
@@ -54,6 +54,14 @@ export default function Navbar({ user }) {
           <div className="flex items-center gap-2 sm:gap-3">
             {user ? (
               <div className="hidden sm:flex items-center gap-3">
+                {/* Questions Submitted Counter */}
+                <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-lg border border-green-300">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-green-700 font-medium">Questions Submitted</span>
+                    <span className="text-lg font-bold text-green-600">{submittedCount}</span>
+                  </div>
+                </div>
+                
                 <div className="flex items-center gap-2 px-4 py-2 bg-blue-600 rounded-lg border border-blue-700">
                   <div className="flex flex-col">
                     <span className="text-xs text-blue-100 font-medium">Welcome</span>

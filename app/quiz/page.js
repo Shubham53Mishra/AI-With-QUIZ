@@ -16,6 +16,7 @@ export default function QuizPage() {
   const [answered, setAnswered] = useState(false);
   const [feedback, setFeedback] = useState(null); // For correct/wrong feedback
   const [isCorrect, setIsCorrect] = useState(null);
+  const [submittedCount, setSubmittedCount] = useState(0); // Track questions submitted
 
   useEffect(() => {
     getCurrentUser().then(setUser);
@@ -78,6 +79,7 @@ export default function QuizPage() {
       if (submitResponse.ok) {
         setIsCorrect(submitData.isCorrect);
         setFeedback(submitData.message);
+        setSubmittedCount(submittedCount + 1); // Increment counter on successful submission
       } else {
         console.error('Error submitting answer:', submitData.error);
         setFeedback('Error submitting answer');
@@ -97,7 +99,7 @@ export default function QuizPage() {
   if (isLoading) {
     return (
       <main>
-        <Navbar user={user} />
+        <Navbar user={user} submittedCount={submittedCount} />
         <div className="pt-40 md:pt-48 pb-10">
           <div className="container mx-auto px-4 flex items-center justify-center min-h-screen">
             <div className="text-center">
@@ -113,7 +115,7 @@ export default function QuizPage() {
   if (error) {
     return (
       <main>
-        <Navbar user={user} />
+        <Navbar user={user} submittedCount={submittedCount} />
         <div className="pt-40 md:pt-48 pb-10">
           <div className="container mx-auto px-4 flex items-center justify-center min-h-screen">
             <div className="text-center">
@@ -133,7 +135,7 @@ export default function QuizPage() {
 
   return (
     <main>
-      <Navbar user={user} />
+      <Navbar user={user} submittedCount={submittedCount} />
       <div className="pt-40 md:pt-48 pb-16">
         <div className="container mx-auto px-4 max-w-2xl">
           {question ? (
