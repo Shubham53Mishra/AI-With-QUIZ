@@ -12,6 +12,8 @@ export default function QuizPage() {
   const [unlockTime, setUnlockTime] = useState(null);
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [answered, setAnswered] = useState(false);
 
   useEffect(() => {
     getCurrentUser().then(setUser);
@@ -22,64 +24,44 @@ export default function QuizPage() {
   const fetchNextQuestion = async () => {
     setIsLoading(true);
     setError('');
+    setSelectedAnswer(null);
+    setAnswered(false);
     try {
       const response = await fetch('/api/questions/unlock');
       const data = await response.json();
+      console.log('Question unlock response:', data);
+      
       if (data.success && data.question) {
         setQuestion(data.question);
         setUnlockTime(data.nextUnlock);
         setSecondsLeft(0);
       } else if (data.secondsLeft > 0) {
+        // User has to wait for next question
         setQuestion(null);
         setSecondsLeft(data.secondsLeft);
         setUnlockTime(data.nextUnlock);
       } else {
+        // No questions available
         setQuestion(null);
         setError(data.message || 'No more questions');
       }
     } catch (err) {
+      console.error('Error fetching question:', err);
       setError('Failed to load question');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAnswerClick = (answer) => {
-    const newUserAnswers = { ...userAnswers, [currentQuestion]: answer };
-    setUserAnswers(newUserAnswers);
-
-    const question = questions[currentQuestion];
-    if (answer === question.correctAnswer) {
-      setScore(score + 1);
-    }
-  };
-
-  const handleNextQuestion = () => {
-    const nextQuestion = currentQuestion + 1;
-    if (nextQuestion < questions.length) {
-      setCurrentQuestion(nextQuestion);
-    } else {
-      setShowScore(true);
-    }
-  };
-
-  const handlePreviousQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
-    }
-  };
-
-  const handleRestart = () => {
-    setCurrentQuestion(0);
-    setScore(0);
-    setShowScore(false);
-    setUserAnswers({});
-    setSkippedQuestions(new Set());
-  };
-
-  const handleSkipQuestion = () => {
-    setSkippedQuestions(new Set([...skippedQuestions, currentQuestion]));
-    handleNextQuestion();
+  const handleSubmitAnswer = async () => {
+    if (!selectedAnswer) return;
+    
+    setAnswered(true);
+    
+    // After a short delay, fetch the next question
+    setTimeout(() => {
+      fetchNextQuestion();
+    }, 1500);
   };
 
 
@@ -108,7 +90,10 @@ export default function QuizPage() {
             <div className="text-center">
               <h1 className="text-3xl font-bold mb-4 text-gray-900">{error}</h1>
               {secondsLeft > 0 && (
-                <Timer secondsLeft={secondsLeft} onComplete={fetchNextQuestion} />
+                <>
+                  <p className="text-lg text-gray-600 mb-6">Next question will unlock in:</p>
+                  <Timer secondsLeft={secondsLeft} onComplete={fetchNextQuestion} />
+                </>
               )}
             </div>
           </div>
@@ -131,11 +116,20 @@ export default function QuizPage() {
                 {['A', 'B', 'C', 'D'].map((option) => (
                   <button
                     key={option}
-                    className="w-full p-5 text-left rounded-xl border-2 transition transform hover:scale-102 border-gray-200 hover:border-blue-400 hover:bg-gray-50"
-                    disabled
+                    onClick={() => !answered && setSelectedAnswer(option)}
+                    className={`w-full p-5 text-left rounded-xl border-2 transition transform ${
+                      answered
+                        ? selectedAnswer === option
+                          ? 'bg-blue-50 border-blue-500'
+                          : 'bg-gray-50 border-gray-200'
+                        : selectedAnswer === option
+                        ? 'bg-blue-50 border-blue-500 hover:scale-102'
+                        : 'border-gray-200 hover:border-blue-400 hover:bg-gray-50 hover:scale-102'
+                    }`}
+                    disabled={answered}
                   >
                     <div className="flex items-start gap-4">
-                      <span className="font-bold text-lg flex-shrink-0 text-gray-400">
+                      <span className="font-bold text-lg flex-shrink-0 text-gray-700">
                         {option}.
                       </span>
                       <span className="text-base md:text-lg text-gray-800">
@@ -145,15 +139,27 @@ export default function QuizPage() {
                   </button>
                 ))}
               </div>
-              {secondsLeft > 0 && (
-                <Timer secondsLeft={secondsLeft} onComplete={fetchNextQuestion} />
-              )}
+              
+              <button
+                onClick={handleSubmitAnswer}
+                disabled={!selectedAnswer || answered}
+                className={`w-full py-3 px-6 rounded-xl font-semibold text-white transition ${
+                  !selectedAnswer || answered
+                    ? 'bg-gray-400 cursor-not-allowed opacity-50'
+                    : 'bg-blue-600 hover:bg-blue-700 active:scale-95'
+                }`}
+              >
+                {answered ? 'Loading next question...' : 'Submit Answer'}
+              </button>
             </div>
           ) : (
             <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 border border-gray-100 text-center">
               <h2 className="text-2xl font-bold mb-4 text-gray-900">No question available</h2>
               {secondsLeft > 0 && (
-                <Timer secondsLeft={secondsLeft} onComplete={fetchNextQuestion} />
+                <>
+                  <p className="text-lg text-gray-600 mb-6">Next question will unlock in:</p>
+                  <Timer secondsLeft={secondsLeft} onComplete={fetchNextQuestion} />
+                </>
               )}
             </div>
           )}

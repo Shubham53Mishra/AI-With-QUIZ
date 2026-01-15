@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Navbar from '../../../components/Navbar';
+import AuthNavbar from '../../../components/AuthNavbar';
 import { getCurrentUser } from '../../../lib/auth';
 
 export default function AdminSignupPage() {
@@ -63,10 +63,10 @@ export default function AdminSignupPage() {
         adminCode: '',
       });
 
-      // Redirect to admin login after 1.5 seconds
+      // Redirect to admin login
       setTimeout(() => {
-        router.push('/auth/admin-login');
-      }, 1500);
+        window.location.href = '/auth/admin-login';
+      }, 1000);
     } catch (err) {
       setError('An error occurred. Please try again.');
       console.error(err);
@@ -77,7 +77,7 @@ export default function AdminSignupPage() {
 
   return (
     <>
-      <Navbar user={user} />
+      <AuthNavbar user={user} isAdmin={true} />
       <div className="min-h-screen bg-gradient-to-b from-white via-blue-50 to-white pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header Section */}

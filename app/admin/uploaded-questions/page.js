@@ -1,19 +1,50 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Navbar from '../../../components/Navbar';
+import AdminNavbar from '../../../components/AdminNavbar';
 import AdminSidebar from '../../../components/AdminSidebar';
 import { useRouter } from 'next/navigation';
+import { getCurrentUser } from '../../../lib/auth.js';
 
 export default function UploadedQuestionsPage() {
   const [uploadedQuestions, setUploadedQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
   const router = useRouter();
 
+  // Check authentication on mount
   useEffect(() => {
-    fetchUploadedQuestions();
-  }, []);
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (!response.ok) {
+          router.push('/auth/admin-login');
+          return;
+        }
+        const data = await response.json();
+        const user = data.user;
+        if (user.role !== 'admin' && user.role !== 'assistant admin') {
+          router.push('/');
+          return;
+        }
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        router.push('/auth/admin-login');
+      } finally {
+        setIsAuthChecking(false);
+      }
+    };
+    checkAuth();
+  }, [router]);
+
+  useEffect(() => {
+    if (!isAuthChecking && isAuthenticated) {
+      fetchUploadedQuestions();
+    }
+  }, [isAuthChecking, isAuthenticated]);
 
   const fetchUploadedQuestions = async () => {
     try {
@@ -28,6 +59,23 @@ export default function UploadedQuestionsPage() {
       setLoading(false);
     }
   };
+
+  // Show loading while checking auth
+  if (isAuthChecking) {
+    return (
+      <main className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600">Verifying admin access...</p>
+        </div>
+      </main>
+    );
+  }
+
+  // Don't render if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
 
   // Group questions by fileName
   const groupedQuestions = uploadedQuestions.reduce((acc, question) => {
@@ -50,7 +98,7 @@ export default function UploadedQuestionsPage() {
 
   return (
     <main>
-      <Navbar />
+      <AdminNavbar user={null} />
       <AdminSidebar />
 
       <div className="pt-48 md:pt-56 pb-32 ml-20">

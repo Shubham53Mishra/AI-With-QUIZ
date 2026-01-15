@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get('authToken')?.value || cookieStore.get('adminToken')?.value;
+    const token = cookieStore.get('token')?.value;
     if (!token) {
       return new Response(JSON.stringify({ error: 'Not authenticated' }), { status: 401 });
     }
@@ -19,8 +19,7 @@ export async function GET() {
       return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
     }
 
-    // Find the next question index for this user (could be tracked in user or another table)
-    // For simplicity, assume questionId = user.lastQuestionIndex + 1
+    // Find the next question index for this user
     let lastIndex = user.lastQuestionIndex || 0;
     let lastUnlock = user.lastQuestionTimestamp;
     let now = new Date();
@@ -37,11 +36,13 @@ export async function GET() {
       }), { status: 200 });
     }
 
-    // Get the next question
+    // Get the next question (just get the next available question)
     const nextQuestion = await prisma.question.findFirst({
-      where: { questionId: lastIndex + 1 },
-      orderBy: { questionId: 'asc' },
+      skip: lastIndex,
+      take: 1,
+      orderBy: { createdAt: 'asc' },
     });
+    
     if (!nextQuestion) {
       return new Response(JSON.stringify({ success: false, message: 'No more questions' }), { status: 200 });
     }

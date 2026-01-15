@@ -3,7 +3,7 @@
   import { useState, useEffect } from 'react';
   import { useSearchParams, useRouter } from 'next/navigation';
   import { getCurrentUser } from '../../lib/auth.js';
-  import Navbar from '../../components/Navbar';
+  import AdminNavbar from '../../components/AdminNavbar';
   import AdminSidebar from '../../components/AdminSidebar';
   import ExcelUploader from '../../components/ExcelUploader';
   import { Button } from '@/components/ui/button';
@@ -127,7 +127,8 @@
             router.push('/auth/admin-login');
             return;
           }
-          const user = await response.json();
+          const data = await response.json();
+          const user = data.user;
           if (user.role !== 'admin' && user.role !== 'assistant admin') {
             router.push('/');
             return;
@@ -453,7 +454,7 @@
   
     return (
       <main>
-        <Navbar user={user} />
+        <AdminNavbar user={user} />
         <AdminSidebar onSidebarStateChange={setSidebarOpen} />
         
         {/* Modals */}
